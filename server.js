@@ -4,6 +4,7 @@ const Parser = require('rss-parser');
 const RSS = require('rss'); // Biblioteca para gerar RSS
 const fs = require('fs');
 const path = require('path');
+const cron = require('node-cron'); // Biblioteca para agendar tarefas
 const parser = new Parser();
 
 const app = express();
@@ -15,6 +16,71 @@ const xmlFolder = path.join(__dirname, 'public', 'rss_feeds');
 if (!fs.existsSync(xmlFolder)) {
   fs.mkdirSync(xmlFolder, { recursive: true });
 }
+
+// Função para gerar um feed RSS
+const generateRssFeed = async (feeds) => {
+  const aggregatedFeed = [];
+  for (const feedUrl of feeds) {
+    const feed = await parser.parseURL(feedUrl);
+    aggregatedFeed.push(...feed.items);
+  }
+
+  aggregatedFeed.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+
+  // Cria um novo feed RSS
+  const feed = new RSS({
+    title: 'RSS Aggregator',
+    description: 'Feed RSS agregado a partir de múltiplas fontes.',
+    feed_url: 'https://rss-aggregator-cmdg.onrender.com/generate-rss',
+    site_url: 'https://rss-aggregator-cmdg.onrender.com',
+    language: 'pt-br',
+  });
+
+  // Adiciona os itens ao feed
+  aggregatedFeed.forEach(item => {
+    feed.item({
+      title: item.title,
+      description: item.contentSnippet || item.description,
+      url: item.link,
+      date: item.pubDate,
+    });
+  });
+
+  return feed;
+};
+
+// Função para atualizar todos os arquivos XML
+const updateAllRssFeeds = async () => {
+  try {
+    const feeds = [
+      'https://www.artificialintelligence-news.com/feed/',
+      'https://news.mit.edu/topic/mitartificial-intelligence2-rss.xml',
+    ];
+
+    // Lista todos os arquivos XML na pasta
+    const files = fs.readdirSync(xmlFolder);
+    for (const file of files) {
+      if (file.endsWith('.xml')) {
+        const filePath = path.join(xmlFolder, file);
+
+        // Gera um novo feed RSS
+        const feed = await generateRssFeed(feeds);
+
+        // Atualiza o arquivo XML
+        fs.writeFileSync(filePath, feed.xml());
+        console.log(`Arquivo ${file} atualizado com sucesso.`);
+      }
+    }
+  } catch (error) {
+    console.error('Erro ao atualizar os feeds RSS:', error);
+  }
+};
+
+// Agenda a atualização dos feeds RSS três vezes por semana (segunda, quarta e sexta às 8:00)
+cron.schedule('0 8 * * 1,3,5', () => {
+  console.log('Atualizando feeds RSS...');
+  updateAllRssFeeds();
+});
 
 // Endpoint para agregar feeds e retornar JSON
 app.post('/aggregate', async (req, res) => {
@@ -47,38 +113,14 @@ app.post('/generate-rss', async (req, res) => {
   }
 
   try {
-    const aggregatedFeed = [];
-    for (const feedUrl of feeds) {
-      const feed = await parser.parseURL(feedUrl);
-      aggregatedFeed.push(...feed.items);
-    }
-
-    aggregatedFeed.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
-
-    // Cria um novo feed RSS
-    const feed = new RSS({
-      title: 'RSS Aggregator',
-      description: 'Feed RSS agregado a partir de múltiplas fontes.',
-      feed_url: 'https://rss-aggregator-cmdg.onrender.com/generate-rss',
-      site_url: 'https://rss-aggregator-cmdg.onrender.com',
-      language: 'pt-br',
-    });
-
-    // Adiciona os itens ao feed
-    aggregatedFeed.forEach(item => {
-      feed.item({
-        title: item.title,
-        description: item.contentSnippet || item.description,
-        url: item.link,
-        date: item.pubDate,
-      });
-    });
-
     // Gera o nome do arquivo
     const files = fs.readdirSync(xmlFolder);
     const nextFileNumber = files.length + 1;
     const fileName = `rss_feed${nextFileNumber}.xml`;
     const filePath = path.join(xmlFolder, fileName);
+
+    // Gera o feed RSS
+    const feed = await generateRssFeed(feeds);
 
     // Salva o arquivo XML
     fs.writeFileSync(filePath, feed.xml());
