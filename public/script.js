@@ -1,4 +1,4 @@
-const backendUrl = 'https://rss-aggregator-cmdg.onrender.com';
+const backendUrl = 'https://rss-aggregator-1.onrender.com';
 
 document.getElementById('addFeed').addEventListener('click', () => {
   const form = document.getElementById('rssForm');
@@ -23,7 +23,6 @@ document.getElementById('rssForm').addEventListener('submit', async (e) => {
   const feeds = Array.from(document.querySelectorAll('input[type="url"]')).map(input => input.value);
 
   try {
-    // Envia os feeds para o backend e recebe os resultados agregados
     const response = await fetch(`${backendUrl}/aggregate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -48,32 +47,28 @@ document.getElementById('rssForm').addEventListener('submit', async (e) => {
   }
 });
 
-// Adiciona a funcionalidade para gerar e baixar o feed RSS em XML
 document.getElementById('generateRss').addEventListener('click', async () => {
   const feeds = Array.from(document.querySelectorAll('input[type="url"]')).map(input => input.value);
 
   try {
-    // Envia os feeds para o backend e recebe o feed RSS em XML
     const response = await fetch(`${backendUrl}/generate-rss`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ feeds }),
     });
 
-    if (!response.ok) {
-      throw new Error('Falha ao gerar o feed RSS.');
+    const data = await response.json();
+    if (data.error) {
+      alert(data.error);
+    } else {
+      // Exibe o link do XML gerado
+      const resultsDiv = document.getElementById('results');
+      const link = document.createElement('a');
+      link.href = data.url;
+      link.textContent = 'Download RSS Feed';
+      link.target = '_blank';
+      resultsDiv.appendChild(link);
     }
-
-    const xml = await response.text();
-
-    // Cria um link para baixar o arquivo XML
-    const blob = new Blob([xml], { type: 'application/rss+xml' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'aggregated-feed.xml';
-    a.click();
-    URL.revokeObjectURL(url);
   } catch (error) {
     console.error('Error:', error);
   }
