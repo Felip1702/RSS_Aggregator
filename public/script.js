@@ -22,7 +22,7 @@ document.getElementById('addFeed').addEventListener('click', () => {
   
     try {
       // Atualize a URL do backend aqui
-      const response = await fetch('https://us-central1-your-project-id.cloudfunctions.net/api/aggregate', {
+      const response = await fetch('https://rss-aggregator-cmdg.onrender.com/aggregate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ feeds }),
