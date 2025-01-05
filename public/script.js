@@ -1,4 +1,4 @@
-const backendUrl = 'https://rss-aggregator-1.onrender.com';
+const backendUrl = 'https://rss-aggregator-cmdg.onrender.com';
 
 document.getElementById('addFeed').addEventListener('click', () => {
   const form = document.getElementById('rssForm');
@@ -23,6 +23,7 @@ document.getElementById('rssForm').addEventListener('submit', async (e) => {
   const feeds = Array.from(document.querySelectorAll('input[type="url"]')).map(input => input.value);
 
   try {
+    // Envia os feeds para o backend e recebe os resultados agregados
     const response = await fetch(`${backendUrl}/aggregate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -47,10 +48,12 @@ document.getElementById('rssForm').addEventListener('submit', async (e) => {
   }
 });
 
+// Adiciona a funcionalidade para gerar e exibir o link do feed RSS em XML
 document.getElementById('generateRss').addEventListener('click', async () => {
   const feeds = Array.from(document.querySelectorAll('input[type="url"]')).map(input => input.value);
 
   try {
+    // Envia os feeds para o backend e recebe o link do feed RSS gerado
     const response = await fetch(`${backendUrl}/generate-rss`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -62,12 +65,8 @@ document.getElementById('generateRss').addEventListener('click', async () => {
       alert(data.error);
     } else {
       // Exibe o link do XML gerado
-      const resultsDiv = document.getElementById('results');
-      const link = document.createElement('a');
-      link.href = data.url;
-      link.textContent = 'Download RSS Feed';
-      link.target = '_blank';
-      resultsDiv.appendChild(link);
+      const rssLinkDiv = document.getElementById('rssLink');
+      rssLinkDiv.innerHTML = `<a href="${data.url}" target="_blank">Download RSS Feed</a>`;
     }
   } catch (error) {
     console.error('Error:', error);
