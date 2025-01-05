@@ -83,7 +83,7 @@ const updateAllRssFeeds = async () => {
 };
 
 // Agenda a atualização dos feeds RSS três vezes por semana (segunda, quarta e sexta às 8:00)
-cron.schedule('* * * * *', () => {
+cron.schedule('0 8 * * 1,3,5', () => {
   console.log('Atualizando feeds RSS...');
   updateAllRssFeeds();
 });
