@@ -37,3 +37,17 @@ body {
   #results {
     margin-top: 20px;
   }
+
+  #generateRss {
+    margin-top: 10px;
+    padding: 10px 15px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  #generateRss:hover {
+    background-color: #218838;
+  }

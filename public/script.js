@@ -21,7 +21,7 @@ document.getElementById('addFeed').addEventListener('click', () => {
     const feeds = Array.from(document.querySelectorAll('input[type="url"]')).map(input => input.value);
   
     try {
-      // Atualize a URL do backend aqui
+      // Envia os feeds para o backend e recebe os resultados agregados
       const response = await fetch('https://rss-aggregator-cmdg.onrender.com/aggregate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -41,6 +41,37 @@ document.getElementById('addFeed').addEventListener('click', () => {
           resultsDiv.appendChild(itemDiv);
         });
       }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  });
+  
+  // Adiciona a funcionalidade para gerar e baixar o feed RSS em XML
+  document.getElementById('generateRss').addEventListener('click', async () => {
+    const feeds = Array.from(document.querySelectorAll('input[type="url"]')).map(input => input.value);
+  
+    try {
+      // Envia os feeds para o backend e recebe o feed RSS em XML
+      const response = await fetch('https://rss-aggregator-cmdg.onrender.com/generate-rss', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ feeds }),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Falha ao gerar o feed RSS.');
+      }
+  
+      const xml = await response.text();
+  
+      // Cria um link para baixar o arquivo XML
+      const blob = new Blob([xml], { type: 'application/rss+xml' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'aggregated-feed.xml';
+      a.click();
+      URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error:', error);
     }
