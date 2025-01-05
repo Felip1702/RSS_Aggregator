@@ -1,4 +1,4 @@
-const backendUrl = 'https://rss-aggregator-cmdg.onrender.com';
+const backendUrl = 'https://rss-aggregator-1.onrender.com';
 
 // Função para carregar a data da última atualização
 const loadLastUpdateDate = async () => {
@@ -13,6 +13,28 @@ const loadLastUpdateDate = async () => {
   }
 };
 
+// Função para carregar e exibir a lista de arquivos XML
+const loadXmlFiles = async () => {
+  try {
+    const response = await fetch(`${backendUrl}/list-xml-files`);
+    const data = await response.json();
+
+    const tableBody = document.getElementById('xml-files-table').getElementsByTagName('tbody')[0];
+    tableBody.innerHTML = ''; // Limpa a tabela antes de adicionar novos dados
+
+    data.forEach(file => {
+      const row = tableBody.insertRow();
+      const cellName = row.insertCell(0);
+      const cellLastUpdated = row.insertCell(1);
+
+      cellName.textContent = file.name;
+      cellLastUpdated.textContent = new Date(file.lastUpdated).toLocaleString();
+    });
+  } catch (error) {
+    console.error('Erro ao carregar a lista de arquivos XML:', error);
+  }
+};
+
 // Função para atualizar os feeds sob demanda
 const updateFeeds = async () => {
   try {
@@ -23,7 +45,8 @@ const updateFeeds = async () => {
     const data = await response.json();
     if (data.success) {
       document.getElementById('update-result').innerHTML = `<p style="color: green;">Feeds atualizados com sucesso!</p>`;
-      loadLastUpdateDate(); // Recarrega a data da última atualização
+      await loadLastUpdateDate(); // Recarrega a data da última atualização
+      await loadXmlFiles(); // Recarrega a lista de arquivos XML
     } else {
       document.getElementById('update-result').innerHTML = `<p style="color: red;">Erro ao atualizar os feeds.</p>`;
     }
@@ -33,8 +56,11 @@ const updateFeeds = async () => {
   }
 };
 
-// Carrega a data da última atualização ao carregar a página
-document.addEventListener('DOMContentLoaded', loadLastUpdateDate);
+// Carrega a data da última atualização e a lista de arquivos XML ao carregar a página
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadLastUpdateDate();
+  await loadXmlFiles();
+});
 
 // Adiciona o evento de clique ao botão de atualização
 document.getElementById('update-feeds').addEventListener('click', updateFeeds);

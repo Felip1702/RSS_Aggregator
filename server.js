@@ -4,7 +4,6 @@ const Parser = require('rss-parser');
 const RSS = require('rss'); // Biblioteca para gerar RSS
 const fs = require('fs');
 const path = require('path');
-const cron = require('node-cron'); // Biblioteca para agendar tarefas
 const parser = new Parser();
 
 const app = express();
@@ -82,12 +81,6 @@ const updateAllRssFeeds = async () => {
   }
 };
 
-// Agenda a atualização dos feeds RSS três vezes por semana (segunda, quarta e sexta às 8:00)
-cron.schedule('0 8 * * 1,3,5', () => {
-  console.log('Atualizando feeds RSS...');
-  updateAllRssFeeds();
-});
-
 // Endpoint para retornar a data da última atualização
 app.get('/last-update', (req, res) => {
   res.json({ lastUpdateDate });
@@ -100,6 +93,27 @@ app.post('/update-feeds', async (req, res) => {
     res.json({ success: true, lastUpdateDate });
   } catch (error) {
     res.status(500).json({ error: 'Falha ao atualizar os feeds RSS.' });
+  }
+});
+
+// Endpoint para listar os arquivos XML e suas datas de modificação
+app.get('/list-xml-files', (req, res) => {
+  try {
+    const files = fs.readdirSync(xmlFolder);
+    const xmlFiles = files
+      .filter(file => file.endsWith('.xml'))
+      .map(file => {
+        const filePath = path.join(xmlFolder, file);
+        const stats = fs.statSync(filePath);
+        return {
+          name: file,
+          lastUpdated: stats.mtime.toISOString(), // Data da última modificação
+        };
+      });
+
+    res.json(xmlFiles);
+  } catch (error) {
+    res.status(500).json({ error: 'Falha ao listar os arquivos XML.' });
   }
 });
 

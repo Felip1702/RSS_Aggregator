@@ -5,6 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RSS Aggregator - Update Feeds</title>
   <link rel="stylesheet" href="styles.css">
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    table, th, td {
+      border: 1px solid #ddd;
+    }
+    th, td {
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #f4f4f4;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
@@ -14,6 +31,19 @@
     </div>
     <button id="update-feeds">Atualizar Feeds Agora</button>
     <div id="update-result"></div>
+
+    <h2>Arquivos XML Existentes</h2>
+    <table id="xml-files-table">
+      <thead>
+        <tr>
+          <th>Nome do Arquivo</th>
+          <th>Última Atualização</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Linhas serão adicionadas dinamicamente pelo JavaScript -->
+      </tbody>
+    </table>
   </div>
   <script src="update-script.js"></script>
 </body>
