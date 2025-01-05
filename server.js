@@ -59,23 +59,19 @@ const updateAllRssFeeds = async () => {
       'https://news.mit.edu/topic/mitartificial-intelligence2-rss.xml',
     ];
 
-    // Lista todos os arquivos XML na pasta
     const files = fs.readdirSync(xmlFolder);
     for (const file of files) {
       if (file.endsWith('.xml')) {
         const filePath = path.join(xmlFolder, file);
-
-        // Gera um novo feed RSS
         const feed = await generateRssFeed(feeds);
-
-        // Atualiza o arquivo XML
         fs.writeFileSync(filePath, feed.xml());
         console.log(`Arquivo ${file} atualizado com sucesso.`);
       }
     }
 
     // Atualiza a data da última atualização
-    lastUpdateDate = new Date();
+    lastUpdateDate = new Date(); // <-- Certifique-se de que esta linha está presente
+    console.log(`Feeds atualizados em: ${lastUpdateDate}`);
   } catch (error) {
     console.error('Erro ao atualizar os feeds RSS:', error);
   }
@@ -83,7 +79,11 @@ const updateAllRssFeeds = async () => {
 
 // Endpoint para retornar a data da última atualização
 app.get('/last-update', (req, res) => {
-  res.json({ lastUpdateDate });
+  if (lastUpdateDate) {
+    res.json({ lastUpdateDate });
+  } else {
+    res.json({ lastUpdateDate: null }); // Retorna null se a data não estiver definida
+  }
 });
 
 // Endpoint para atualização manual dos feeds

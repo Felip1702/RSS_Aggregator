@@ -2,16 +2,16 @@ const backendUrl = 'https://rss-aggregator-1.onrender.com';
 
 // Função para carregar a data da última atualização
 const loadLastUpdateDate = async () => {
-  try {
-    const response = await fetch(`${backendUrl}/last-update`);
-    const data = await response.json();
-    const lastUpdateDate = data.lastUpdateDate ? new Date(data.lastUpdateDate).toLocaleString() : 'Nunca';
-    document.getElementById('last-update-date').textContent = lastUpdateDate;
-  } catch (error) {
-    console.error('Erro ao carregar a data da última atualização:', error);
-    document.getElementById('last-update-date').textContent = 'Erro ao carregar';
-  }
-};
+    try {
+      const response = await fetch(`${backendUrl}/last-update`);
+      const data = await response.json();
+      const lastUpdateDate = data.lastUpdateDate ? new Date(data.lastUpdateDate).toLocaleString() : 'Nunca';
+      document.getElementById('last-update-date').textContent = lastUpdateDate;
+    } catch (error) {
+      console.error('Erro ao carregar a data da última atualização:', error);
+      document.getElementById('last-update-date').textContent = 'Erro ao carregar';
+    }
+  };
 
 // Função para carregar e exibir a lista de arquivos XML
 const loadXmlFiles = async () => {
