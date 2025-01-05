@@ -3,42 +3,42 @@ body {
     margin: 0;
     padding: 20px;
     background-color: #f4f4f4;
-  }
-  .container {
+    }
+    .container {
     max-width: 600px;
     margin: 0 auto;
     background: #fff;
     padding: 20px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  }
-  h1 {
+    }
+    h1 {
     text-align: center;
-  }
-  label {
+    }
+    label {
     display: block;
     margin-top: 10px;
-  }
-  input {
+    }
+    input {
     width: 100%;
     padding: 8px;
     margin-top: 5px;
-  }
-  button {
+    }
+    button {
     margin-top: 10px;
     padding: 10px 15px;
     background: #007bff;
     color: #fff;
     border: none;
     cursor: pointer;
-  }
-  button:hover {
+    }
+    button:hover {
     background: #0056b3;
-  }
-  #results {
+    }
+    #results {
     margin-top: 20px;
-  }
-
-  #generateRss {
+    }
+    
+    #generateRss {
     margin-top: 10px;
     padding: 10px 15px;
     background-color: #28a745;
@@ -46,8 +46,8 @@ body {
     border: none;
     border-radius: 5px;
     cursor: pointer;
-  }
-  
-  #generateRss:hover {
+    }
+    
+    #generateRss:hover {
     background-color: #218838;
-  }
+    }
