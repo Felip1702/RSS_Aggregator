@@ -17,6 +17,9 @@ if (!fs.existsSync(xmlFolder)) {
   fs.mkdirSync(xmlFolder, { recursive: true });
 }
 
+// Variável para armazenar a data da última atualização
+let lastUpdateDate = null;
+
 // Função para gerar um feed RSS
 const generateRssFeed = async (feeds) => {
   const aggregatedFeed = [];
@@ -71,6 +74,9 @@ const updateAllRssFeeds = async () => {
         console.log(`Arquivo ${file} atualizado com sucesso.`);
       }
     }
+
+    // Atualiza a data da última atualização
+    lastUpdateDate = new Date();
   } catch (error) {
     console.error('Erro ao atualizar os feeds RSS:', error);
   }
@@ -80,6 +86,21 @@ const updateAllRssFeeds = async () => {
 cron.schedule('0 8 * * 1,3,5', () => {
   console.log('Atualizando feeds RSS...');
   updateAllRssFeeds();
+});
+
+// Endpoint para retornar a data da última atualização
+app.get('/last-update', (req, res) => {
+  res.json({ lastUpdateDate });
+});
+
+// Endpoint para atualização manual dos feeds
+app.post('/update-feeds', async (req, res) => {
+  try {
+    await updateAllRssFeeds();
+    res.json({ success: true, lastUpdateDate });
+  } catch (error) {
+    res.status(500).json({ error: 'Falha ao atualizar os feeds RSS.' });
+  }
 });
 
 // Endpoint para agregar feeds e retornar JSON
