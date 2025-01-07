@@ -1,41 +1,41 @@
 const backendUrl = 'https://rss-aggregator-cmdg.onrender.com';
 
 async function fetchAndDisplayRssLinks() {
-  try {
-      const response = await fetch(`${backendUrl}/list-rss`);
-      const data = await response.json();
-      const rssListDiv = document.getElementById('rssList');
-      if(rssListDiv) rssListDiv.innerHTML = "";
+try {
+    const response = await fetch(`${backendUrl}/list-rss`);
+    const data = await response.json();
+    const rssListDiv = document.getElementById('rssList');
+    if(rssListDiv) rssListDiv.innerHTML = "";
 
-      if (data.error) {
-          rssListDiv.innerHTML = `<p style="color: red;">${data.error}</p>`;
-      } else {
-          const listDiv = document.createElement('ul');
-          data.forEach(item => {
-               const listItem = document.createElement('li');
-              listItem.innerHTML = `
-                <strong>ID:</strong> ${item.id}<br>
-                <strong>Data de Criação:</strong> ${item.createdAt ? new Date(item.createdAt.seconds * 1000).toLocaleString() : 'Não disponível'}<br>
-                <strong>Feeds:</strong> ${item.feeds.join(', ')}<br>
-                <strong>Última Atualização:</strong> <span id="lastUpdate-${item.id}">Carregando...</span><br>
-                <button id="update-${item.id}">Atualizar</button>
-                <br><br><a href="${item.url}" target="_blank">Link XML</a>
-               `;
-                listDiv.appendChild(listItem);
+    if (data.error) {
+        rssListDiv.innerHTML = `<p style="color: red;">${data.error}</p>`;
+    } else {
+        const listDiv = document.createElement('ul');
+        data.forEach(item => {
+             const listItem = document.createElement('li');
+            listItem.innerHTML = `
+              <strong>ID:</strong> ${item.id}<br>
+              <strong>Data de Criação:</strong> ${item.createdAt ? new Date(item.createdAt.seconds * 1000).toLocaleString() : 'Não disponível'}<br>
+              <strong>Feeds:</strong> ${item.feeds.join(', ')}<br>
+              <strong>Última Atualização:</strong> <span id="lastUpdate-${item.id}">Carregando...</span><br>
+              <button id="update-${item.id}">Atualizar</button>
+              <br><br><a href="${item.url}" target="_blank">Link XML</a>
+             `;
+              listDiv.appendChild(listItem);
 
-                const updateButton = document.getElementById(`update-${item.id}`);
-                 updateButton.addEventListener('click', async () => {
-                      await updateRssFeed(item.id);
-                 });
+              const updateButton = document.getElementById(`update-${item.id}`);
+               updateButton.addEventListener('click', async () => {
+                    await updateRssFeed(item.id);
+               });
 
-               getLastUpdate(item.id);
-          });
-          if(rssListDiv) rssListDiv.appendChild(listDiv);
-      }
+             getLastUpdate(item.id);
+        });
+        if(rssListDiv) rssListDiv.appendChild(listDiv);
+    }
 
-  } catch (error) {
-    console.error('Error fetching RSS links:', error);
-  }
+} catch (error) {
+  console.error('Error fetching RSS links:', error);
+}
 }
 
 async function updateRssFeed(id) {
