@@ -57,6 +57,7 @@ async function updateRssFeed(id) {
       }else {
           getLastUpdate(id);
           alert(`Feed ${id} atualizado com sucesso`);
+           fetchAndDisplayRssLinks(); // Atualiza a lista após a atualização
       }
     } catch (error) {
          console.error('Erro ao atualizar RSS links:', error);
@@ -104,6 +105,7 @@ async function updateAllRssFeeds() {
       }
     }
         alert("Todos os feeds foram atualizados com sucesso")
+         fetchAndDisplayRssLinks(); // Atualiza a lista após a atualização
      } catch (error) {
          console.error('Erro durante o batch update:', error); // Adicionado log
          alert(`Erro ao atualizar todos os feeds: ${error}`);
