@@ -125,7 +125,7 @@ app.get('/list-rss', async (req, res) => {
         const feeds = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         res.json(feeds);
     } catch (error) {
-        console.error("Erro ao listar feeds:", error);
+        console.error("Erro ao listar feeds:", error); // Verifique se esse console.error está nos seus logs
         res.status(500).json({ error: 'Falha ao listar feeds.' });
     }
 });
