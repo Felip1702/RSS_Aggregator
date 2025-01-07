@@ -30,8 +30,13 @@ if (!fs.existsSync(xmlFolder)) {
 const generateRssFeed = async (feeds) => {
     const aggregatedFeed = [];
     for (const feedUrl of feeds) {
+      try {
         const feed = await parser.parseURL(feedUrl);
         aggregatedFeed.push(...feed.items);
+        } catch(error) {
+          console.error(`Erro ao obter feed ${feedUrl}:`, error);
+          throw error
+        }
     }
 
     aggregatedFeed.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
@@ -76,6 +81,7 @@ app.post('/aggregate', async (req, res) => {
         aggregatedFeed.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
         res.json(aggregatedFeed);
     } catch (error) {
+        console.error("Erro ao agregar feeds:", error);
         res.status(500).json({ error: 'Falha ao buscar ou analisar os feeds RSS.' });
     }
 });
@@ -89,11 +95,26 @@ app.post('/generate-rss', async (req, res) => {
   }
 
   try {
-      // Gera o nome do arquivo
-      const files = fs.readdirSync(xmlFolder);
-      const nextFileNumber = files.length + 1;
-      const fileName = `rss_feed${nextFileNumber}.xml`;
-      const filePath = path.join(xmlFolder, fileName);
+
+        // Obter o ultimo documento criado
+        const lastDocSnapshot = await db.collection('rss_feeds')
+        .orderBy('createdAt', 'desc')
+        .limit(1)
+        .get();
+
+        let nextFileNumber = 1;
+
+        if (!lastDocSnapshot.empty) {
+          const lastDoc = lastDocSnapshot.docs[0].data();
+          const lastUrl = lastDoc.url;
+          const match = lastUrl.match(/rss_feed(\d+)\.xml/);
+          if(match && match[1]) {
+              nextFileNumber = parseInt(match[1]) + 1;
+          }
+        }
+
+        const fileName = `rss_feed${nextFileNumber}.xml`;
+        const filePath = path.join(xmlFolder, fileName);
 
       // Gera o feed RSS
       const feed = await generateRssFeed(feeds);
@@ -130,7 +151,6 @@ app.get('/list-rss', async (req, res) => {
     }
 });
 
-
 // Endpoint para atualizar um feed
 app.post('/update-rss/:id', async (req, res) => {
     const { id } = req.params;
@@ -164,7 +184,6 @@ app.post('/update-rss/:id', async (req, res) => {
         res.status(500).json({ error: 'Falha ao atualizar o feed RSS.' });
     }
 });
-
 
 // Endpoint para pegar a data da ultima atualização do Feed
 app.get('/last-update/:id', async (req, res) => {
