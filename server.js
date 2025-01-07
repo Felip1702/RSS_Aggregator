@@ -125,13 +125,13 @@ app.post('/generate-rss', async (req, res) => {
       // Salva o link no Firestore
       const docRef = db.collection('rss_feeds').doc();
       await docRef.set({
-          url: `https://rss-aggregator-cmdg.onrender.com/rss_feeds/${fileName}`,
+          url: `https://rss-aggregator-1702.web.app/rss_feeds/${fileName}`,
           createdAt: admin.firestore.FieldValue.serverTimestamp(),
           feeds: feeds
       });
 
       // Retorna o link e o ID do documento
-     res.json({ url: `https://rss-aggregator-cmdg.onrender.com/rss_feeds/${fileName}`, id: docRef.id });
+     res.json({ url: `https://rss-aggregator-1702.web.app/rss_feeds/${fileName}`, id: docRef.id });
 
   } catch (error) {
     console.error("Erro ao gerar ou salvar RSS:", error);
@@ -174,7 +174,7 @@ app.post('/update-rss/:id', async (req, res) => {
         fs.writeFileSync(filePath, feed.xml());
 
         await docRef.update({
-           url:  `https://rss-aggregator-cmdg.onrender.com/rss_feeds/${fileName}`,
+           url:  `https://rss-aggregator-1702.web.app/rss_feeds/${fileName}`,
            lastUpdate: admin.firestore.FieldValue.serverTimestamp(),
        });
        res.json({ message: 'Feed atualizado com sucesso' });
