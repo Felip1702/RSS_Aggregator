@@ -65,7 +65,7 @@ async function getLastUpdate(id) {
            if(lastUpdateSpan) lastUpdateSpan.innerText = "Erro ao buscar a data"
         }else {
            const lastUpdateSpan = document.getElementById(`lastUpdate-${id}`);
-            if(lastUpdateSpan && data.lastUpdate)  lastUpdateSpan.innerText =  new Date(data.lastUpdate.seconds * 1000).toLocaleString();
+            if(lastUpdateSpan && data.lastUpdate)  lastUpdateSpan.innerText =  data.lastUpdate ? new Date(data.lastUpdate.seconds * 1000).toLocaleString() : 'Não foi atualizado ainda';
            else if(lastUpdateSpan)  lastUpdateSpan.innerText = 'Não foi atualizado ainda';
         }
 
