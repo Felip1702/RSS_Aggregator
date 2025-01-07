@@ -88,56 +88,54 @@ app.post('/aggregate', async (req, res) => {
 
 // Endpoint para gerar e salvar o feed RSS em XML
 app.post('/generate-rss', async (req, res) => {
-  const { feeds } = req.body;
+    const { feeds } = req.body;
 
-  if (!feeds || feeds.length < 2 || feeds.length > 5) {
-      return res.status(400).json({ error: 'Por favor, forneça entre 2 e 5 URLs de feeds RSS.' });
-  }
+    if (!feeds || feeds.length < 2 || feeds.length > 5) {
+        return res.status(400).json({ error: 'Por favor, forneça entre 2 e 5 URLs de feeds RSS.' });
+    }
 
-  try {
-
+    try {
         // Obter o ultimo documento criado
         const lastDocSnapshot = await db.collection('rss_feeds')
-        .orderBy('createdAt', 'desc')
-        .limit(1)
-        .get();
+          .orderBy('createdAt', 'desc')
+         .limit(1)
+         .get();
 
         let nextFileNumber = 1;
 
-        if (!lastDocSnapshot.empty) {
-          const lastDoc = lastDocSnapshot.docs[0].data();
-          const lastUrl = lastDoc.url;
-          const match = lastUrl.match(/rss_feed(\d+)\.xml/);
-          if(match && match[1]) {
-              nextFileNumber = parseInt(match[1]) + 1;
-          }
+       if (!lastDocSnapshot.empty) {
+           const lastDoc = lastDocSnapshot.docs[0].data();
+           const lastUrl = lastDoc.url;
+            const match = lastUrl.match(/rss_feed(\d+)\.xml/);
+            if(match && match[1]) {
+                nextFileNumber = parseInt(match[1]) + 1;
+           }
         }
-
         const fileName = `rss_feed${nextFileNumber}.xml`;
         const filePath = path.join(xmlFolder, fileName);
 
-      // Gera o feed RSS
-      const feed = await generateRssFeed(feeds);
+        // Gera o feed RSS
+        const feed = await generateRssFeed(feeds);
 
-      // Salva o arquivo XML
-      fs.writeFileSync(filePath, feed.xml());
+        // Salva o arquivo XML
+        fs.writeFileSync(filePath, feed.xml()); // <<-- Verifique essa linha
 
-      // Salva o link no Firestore
-      const docRef = db.collection('rss_feeds').doc();
-      await docRef.set({
-          url: `https://rss-aggregator-1702.web.app/rss_feeds/${fileName}`,
-          createdAt: admin.firestore.FieldValue.serverTimestamp(),
-          feeds: feeds
-      });
+        // Salva o link no Firestore
+        const docRef = db.collection('rss_feeds').doc();
+        await docRef.set({
+            url: `https://rss-aggregator-1702.web.app/rss_feeds/${fileName}`,
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            feeds: feeds
+        });
 
-      // Retorna o link e o ID do documento
-     res.json({ url: `https://rss-aggregator-1702.web.app/rss_feeds/${fileName}`, id: docRef.id });
+        // Retorna o link e o ID do documento
+         res.json({ url: `https://rss-aggregator-1702.web.app/rss_feeds/${fileName}`, id: docRef.id });
 
-  } catch (error) {
-    console.error("Erro ao gerar ou salvar RSS:", error);
-      res.status(500).json({ error: 'Falha ao gerar ou salvar o feed RSS.' });
-  }
-});
+     } catch (error) {
+      console.error("Erro ao gerar ou salvar RSS:", error);
+        res.status(500).json({ error: 'Falha ao gerar ou salvar o feed RSS.' });
+    }
+  });
 
 // Endpoint para listar todos os feeds
 app.get('/list-rss', async (req, res) => {
