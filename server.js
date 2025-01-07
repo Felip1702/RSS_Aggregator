@@ -28,36 +28,35 @@ if (!fs.existsSync(xmlFolder)) {
 
 // Função para gerar um feed RSS
 const generateRssFeed = async (feeds) => {
-  const aggregatedFeed = [];
-  for (const feedUrl of feeds) {
-      const feed = await parser.parseURL(feedUrl);
-      aggregatedFeed.push(...feed.items);
-  }
+    const aggregatedFeed = [];
+    for (const feedUrl of feeds) {
+        const feed = await parser.parseURL(feedUrl);
+        aggregatedFeed.push(...feed.items);
+    }
 
-  aggregatedFeed.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+    aggregatedFeed.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
 
-  // Cria um novo feed RSS
-  const feed = new RSS({
-      title: 'RSS Aggregator',
-      description: 'Feed RSS agregado a partir de múltiplas fontes.',
-      feed_url: 'https://rss-aggregator-cmdg.onrender.com/generate-rss',
-      site_url: 'https://rss-aggregator-cmdg.onrender.com',
-      language: 'pt-br',
-  });
+    // Cria um novo feed RSS
+    const feed = new RSS({
+        title: 'RSS Aggregator',
+        description: 'Feed RSS agregado a partir de múltiplas fontes.',
+        feed_url: 'https://rss-aggregator-cmdg.onrender.com/generate-rss',
+        site_url: 'https://rss-aggregator-cmdg.onrender.com',
+        language: 'pt-br',
+    });
 
-  // Adiciona os itens ao feed
-  aggregatedFeed.forEach(item => {
-      feed.item({
-          title: item.title,
-          description: item.contentSnippet || item.description,
-          url: item.link,
-          date: item.pubDate,
-      });
-  });
+    // Adiciona os itens ao feed
+    aggregatedFeed.forEach(item => {
+        feed.item({
+            title: item.title,
+            description: item.contentSnippet || item.description,
+            url: item.link,
+            date: item.pubDate,
+        });
+    });
 
-  return feed;
+    return feed;
 };
-
 
 // Endpoint para agregar feeds e retornar JSON
 app.post('/aggregate', async (req, res) => {
@@ -102,7 +101,6 @@ app.post('/generate-rss', async (req, res) => {
       // Salva o arquivo XML
       fs.writeFileSync(filePath, feed.xml());
 
-
       // Salva o link no Firestore
       const docRef = db.collection('rss_feeds').doc();
       await docRef.set({
@@ -111,16 +109,80 @@ app.post('/generate-rss', async (req, res) => {
           feeds: feeds
       });
 
-
       // Retorna o link e o ID do documento
      res.json({ url: `https://rss-aggregator-cmdg.onrender.com/rss_feeds/${fileName}`, id: docRef.id });
-    
+
   } catch (error) {
     console.error("Erro ao gerar ou salvar RSS:", error);
       res.status(500).json({ error: 'Falha ao gerar ou salvar o feed RSS.' });
   }
 });
 
+// Endpoint para listar todos os feeds
+app.get('/list-rss', async (req, res) => {
+    try {
+        const snapshot = await db.collection('rss_feeds').orderBy('createdAt', 'desc').get();
+        const feeds = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        res.json(feeds);
+    } catch (error) {
+        console.error("Erro ao listar feeds:", error);
+        res.status(500).json({ error: 'Falha ao listar feeds.' });
+    }
+});
+
+
+// Endpoint para atualizar um feed
+app.post('/update-rss/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const docRef = db.collection('rss_feeds').doc(id);
+        const doc = await docRef.get();
+        if (!doc.exists) {
+            return res.status(404).json({ error: 'Feed não encontrado' });
+        }
+        const data = doc.data();
+        const {feeds} = data;
+        const feed = await generateRssFeed(feeds);
+
+        const files = fs.readdirSync(xmlFolder);
+        const nextFileNumber = files.length + 1;
+        const fileName = `rss_feed${nextFileNumber}.xml`;
+        const filePath = path.join(xmlFolder, fileName);
+
+    // Salva o arquivo XML
+        fs.writeFileSync(filePath, feed.xml());
+
+        await docRef.update({
+           url:  `https://rss-aggregator-cmdg.onrender.com/rss_feeds/${fileName}`,
+           lastUpdate: admin.firestore.FieldValue.serverTimestamp(),
+       });
+       res.json({ message: 'Feed atualizado com sucesso' });
+
+    } catch (error) {
+        console.error("Erro ao atualizar o feed:", error);
+        res.status(500).json({ error: 'Falha ao atualizar o feed RSS.' });
+    }
+});
+
+
+// Endpoint para pegar a data da ultima atualização do Feed
+app.get('/last-update/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const docRef = db.collection('rss_feeds').doc(id);
+        const doc = await docRef.get();
+        if(!doc.exists) {
+           return res.status(404).json({ error: 'Feed não encontrado' });
+        }
+        const data = doc.data();
+       res.json({ lastUpdate: data.lastUpdate });
+
+     } catch (error) {
+          console.error("Erro ao buscar a última atualização do feed:", error);
+         res.status(500).json({ error: 'Falha ao buscar a última atualização do feed.' });
+    }
+});
 
 // Servir arquivos estáticos da pasta "public"
 app.use(express.static(path.join(__dirname, 'public')));
